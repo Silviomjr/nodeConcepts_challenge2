@@ -10,15 +10,50 @@ app.use(cors());
 const users = [];
 
 function checksExistsUserAccount(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+
+  const user = users.find(user => user.username === username);
+
+  if(!user) return response.status(404).json({error: 'User not found!'});
+
+  request.user = user;
+
+  return next();
 }
 
 function checksCreateTodosUserAvailability(request, response, next) {
-  // Complete aqui
+  const { user } = request;
+
+  if(!user.pro) {
+     if(user.todos.length >= 10) {
+       return response.status(403).json({error: "User exceeded the To Do's limits for free account!"});
+     } 
+  }
+
+  return next();
 }
 
 function checksTodoExists(request, response, next) {
-  // Complete aqui
+  const { username } = request.headers;
+  const { id } = request.params;
+  
+  let user = users.find(user => user.username === username);
+  if(!user) {
+    return response.status(404).json({error: 'User not found!'});
+  } else {
+    if(!validate(id)) {
+      return response.status(404).json({error: 'Invalid id!'});
+    } else {
+      if(!user.todos.find(todo => todo.id === id)) {
+        return response.status(404).json({error: 'To do not found!'});
+      } else {
+        request.todo = user.todos.find(todo => todo.id === id);
+        request.user = user
+      }
+    }
+  };
+
+  return next();
 }
 
 function findUserById(request, response, next) {
